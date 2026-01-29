@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'kanban_view.dart';
+import 'register_view.dart'; // Importamos la nueva vista
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -30,11 +31,28 @@ class LoginView extends StatelessWidget {
               child: const Text("Iniciar Sesión"),
             ),
             const SizedBox(height: 12),
+            // Botón de Google con imagen personalizada
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
-              icon: const Icon(Icons.login), // Aquí iría el logo de Google
+              icon: Image.asset('assets/google.png', height: 24), // Imagen solicitada
               label: const Text("Iniciar sesión con Google"),
-              onPressed: () { /* Lógica de Google */ },
+              onPressed: () {},
+            ),
+            const SizedBox(height: 20),
+            // Texto para navegar al registro
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("No tienes cuenta? "),
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => const RegisterView())),
+                  child: const Text(
+                    "Registrate ya!",
+                    style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
