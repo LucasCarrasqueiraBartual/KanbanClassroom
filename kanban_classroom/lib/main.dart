@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kanban_classroom/view/kanban_view.dart';
+import 'package:kanban_classroom/view/login_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +21,8 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.light,
       ),
       // La vista que creamos en el archivo anterior
-      home: const KanbanView(),
+      home: const LoginView(),
+
     );
   }
 }
