@@ -14,9 +14,11 @@ class KanbanScreen extends StatelessWidget {
     final taskService = Provider.of<TaskService>(context);
     final userService = Provider.of<UserService>(context);
 
-    // Obtenemos el nombre del tablero actual
-    String currentBoardName = userService.tempUser.tableros[taskService.selectedBoardId] ?? "Tablero";
+    if (userService.tempUser == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
+    String currentBoardName = userService.tempUser!.tableros[taskService.selectedBoardId] ?? "Tablero Personal";
     return Scaffold(
       appBar: AppBar(
         title: Text(currentBoardName),
@@ -98,7 +100,6 @@ class _KanbanColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Filtramos las tareas que pertenecen a esta columna
     final columnTasks = tasks.where((t) => t.columnId == colId).toList();
 
     return DragTarget<TaskModel>(
