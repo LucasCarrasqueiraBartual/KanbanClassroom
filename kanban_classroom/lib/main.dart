@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kanban_classroom/view/kanban_view.dart';
+import 'package:kanban_classroom/view/kanban_screen.dart';
 import 'package:kanban_classroom/view/login_view.dart';
 
 void main() {

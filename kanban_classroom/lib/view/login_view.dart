@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'kanban_view.dart';
+import 'package:kanban_classroom/view/kanban_screen.dart';
 import 'register_view.dart'; // Importamos la nueva vista
 
 class LoginView extends StatelessWidget {
@@ -27,7 +27,7 @@ class LoginView extends StatelessWidget {
             ElevatedButton(
               style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
               onPressed: () => Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (context) => const KanbanView())),
+                context, MaterialPageRoute(builder: (context) => const KanbanScreen())),
               child: const Text("Iniciar Sesión"),
             ),
             const SizedBox(height: 12),
