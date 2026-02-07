@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:kanban_classroom/services/task_services.dart';
 import 'package:kanban_classroom/services/user_services.dart';
+// 1. IMPORTANTE: Importa aquí tu archivo de pantalla de login
+// Suponiendo que se llama login_screen.dart, si no, cambia el nombre:
+import 'package:kanban_classroom/view/login_view.dart';
 
 class KanbanDrawer extends StatelessWidget {
   const KanbanDrawer({super.key});
@@ -28,7 +31,7 @@ class KanbanDrawer extends StatelessWidget {
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
               child: Text(
-                user.nombre.substring(0, 1).toUpperCase(),
+                user.nombre.isNotEmpty ? user.nombre.substring(0, 1).toUpperCase() : "?",
                 style: const TextStyle(fontSize: 24, color: Colors.indigo),
               ),
             ),
@@ -71,9 +74,16 @@ class KanbanDrawer extends StatelessWidget {
             leading: const Icon(Icons.logout, color: Colors.redAccent),
             title: const Text("Cerrar Sesión"),
             onTap: () async {
+              // Cerramos sesión en el servicio
               await userService.logout();
+              
               if (context.mounted) {
-                Navigator.pushReplacementNamed(context, 'login'); 
+                // NAVEGACIÓN DIRECTA SIN ROUTES
+                Navigator.pushAndRemoveUntil(
+                  context, 
+                  MaterialPageRoute(builder: (context) => const LoginView()),
+                  (route) => false, // Esto elimina todas las pantallas anteriores de la memoria
+                );
               }
             },
           ),
