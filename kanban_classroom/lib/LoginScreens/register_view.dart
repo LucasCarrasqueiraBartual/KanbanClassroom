@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/user_services.dart';
-import 'kanban_screen.dart';
+import '../MainScreens/kanban_screen.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});

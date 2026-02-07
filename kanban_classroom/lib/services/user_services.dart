@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart' as auth; 
 import 'package:kanban_classroom/models/user_model.dart';
+
 class UserService extends ChangeNotifier {
   final String _baseUrl = "kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app";
   
@@ -15,6 +16,51 @@ class UserService extends ChangeNotifier {
   UserService() {
     checkCurrentUser();
   }
+
+  // --- MÉTODOS DE TABLEROS ---
+
+  // Crea un nuevo tablero y vincula al usuario actual
+  Future<String?> createBoard(String boardName) async {
+    if (tempUser == null) return "No hay un usuario activo";
+
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final boardsUrl = Uri.https(_baseUrl, 'boards.json');
+      final boardData = {
+        'nombre': boardName,
+        'creadorId': tempUser!.id,
+        'fechaCreacion': DateTime.now().toIso8601String(),
+      };
+
+      final response = await http.post(boardsUrl, body: json.encode(boardData));
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> decodedResp = json.decode(response.body);
+        final String newBoardId = decodedResp['name']; 
+
+        // Actualizar el perfil del usuario local y en la nube
+        tempUser!.tableros[newBoardId] = boardName;
+
+        final userUrl = Uri.https(_baseUrl, 'users/${tempUser!.id}/tableros/$newBoardId.json');
+        await http.put(userUrl, body: json.encode(boardName));
+
+        notifyListeners();
+        return null; 
+      } else {
+        return "Error al conectar con el servidor";
+      }
+    } catch (e) {
+      print("Error en createBoard: $e");
+      return "Error al crear el tablero";
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // --- MÉTODOS DE AUTENTICACIÓN 
 
   Future<void> checkCurrentUser() async {
     final currentUser = _firebaseAuth.currentUser;
@@ -32,24 +78,21 @@ class UserService extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      // 1. Crear usuario en Firebase Auth
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email, 
         password: password
       );
 
-      // 2. Crear objeto User para nuestra base de datos NoSQL
       final newUser = User(
         id: credential.user!.uid,
         nombre: nombre,
         email: email,
         verificado: true,
         tableros: {
-          credential.user!.uid: "Mi Tablero Personal" // Tablero inicial por defecto
+          credential.user!.uid: "Mi Tablero Personal" 
         },
       );
 
-      // 3. Guardar en Realtime Database 
       final url = Uri.https(_baseUrl, 'users/${newUser.id}.json');
       await http.put(url, body: newUser.toJson());
 
@@ -65,13 +108,11 @@ class UserService extends ChangeNotifier {
     }
   }
 
-  // --- LOGIN CON FIREBASE AUTH 
   Future<String?> login(String email, String password) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      //  Validar credenciales en Firebase Auth
       final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email, 
         password: password
@@ -98,7 +139,7 @@ class UserService extends ChangeNotifier {
         tempUser!.id = uid;
       }
     } catch (e) {
-      print("Error al cargar usuario de la base de datos: $e");
+      print("Error al cargar usuario: $e");
     }
     notifyListeners();
   }
@@ -109,8 +150,6 @@ class UserService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- MÉTODOS (CRUD USUARIOS) 
-  
   Future<void> saveOrCreateUser() async {
     if (tempUser == null) return;
     
@@ -118,31 +157,4 @@ class UserService extends ChangeNotifier {
     await http.put(url, body: tempUser!.toJson());
     notifyListeners();
   }
-
-  //TODO Método para  administrador
-  Future<void> loadAllUsers() async {
-    isLoading = true;
-    notifyListeners();
-
-    final url = Uri.https(_baseUrl, 'users.json');
-    final response = await http.get(url);
-
-    users.clear();
-    if (response.body != 'null' && response.body.isNotEmpty) {
-      final Map<String, dynamic> usersMap = json.decode(response.body);
-      usersMap.forEach((key, value) {
-        final auxUser = User.fromMap(value);
-        auxUser.id = key;
-        users.add(auxUser);
-      });
-    }
-
-    isLoading = false;
-    notifyListeners();
-  }
-
-  //  TODO:
-  //  TODO:
-  //  TODO:
-
 }

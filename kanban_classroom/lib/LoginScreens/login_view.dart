@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:kanban_classroom/models/task_model.dart';
 import 'package:kanban_classroom/models/user_model.dart';
 import 'package:kanban_classroom/services/services.dart';
-import 'kanban_screen.dart';
+import '../MainScreens/kanban_screen.dart';
 import 'register_view.dart';
 
 class LoginView extends StatefulWidget {
@@ -14,6 +14,7 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
 
@@ -36,7 +37,7 @@ class _LoginViewState extends State<LoginView> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.dashboard_customize, size: 80, color: Colors.indigo),
+              const Icon(Icons.house, size: 80, color: Colors.indigo),
               const SizedBox(height: 20),
               const Text("Bienvenido", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
               const SizedBox(height: 40),
@@ -60,7 +61,6 @@ class _LoginViewState extends State<LoginView> {
                       final error = await userService.login(emailCtrl.text.trim(), passCtrl.text.trim());
                       
                       if (error == null) {
-                        // Importante: Cargamos tareas antes de entrar
                         await taskService.loadTasks(userService.tempUser!.id!);
                         if (mounted) {
                           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const KanbanScreen()));

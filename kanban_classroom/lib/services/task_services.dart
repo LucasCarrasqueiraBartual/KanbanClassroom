@@ -1,23 +1,23 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../model/task_model.dart';
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:kanban_classroom/models/task_model.dart';
+import 'package:kanban_classroom/models/models.dart';
 
 class TaskService extends ChangeNotifier {
   final String _baseUrl = "kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app"; 
+  
   List<TaskModel> tasks = [];
   bool isLoading = false;
 
-  String _selectedBoardId = 'user_prueba_123';
+  String _selectedBoardId = ''; 
   late TaskModel _tempTask;
 
   String get selectedBoardId => _selectedBoardId;
+  
+  // setter para que cargue tareas automáticamente al cambiar de tablero
   set selectedBoardId(String val) {
     _selectedBoardId = val;
+    loadTasks(val); 
     notifyListeners();
   }
 
@@ -36,18 +36,18 @@ class TaskService extends ChangeNotifier {
       title: '', 
       description: '', 
       columnId: 'todo', 
-      boardId: _selectedBoardId
+      boardId: _selectedBoardId 
     );
   }
 
-  // --- MÉTODOS HTTP 
+  // --- MÉTODOS HTTP ---
 
-  // 1. CARGAR TAREAS 
   Future<void> loadTasks(String boardId) async {
+    if (boardId.isEmpty) return;
+    
     try {
       isLoading = true;
       _selectedBoardId = boardId; 
-      notifyListeners();
 
       final url = Uri.https(_baseUrl, 'tasks/$boardId.json');
       final response = await http.get(url);
@@ -69,9 +69,11 @@ class TaskService extends ChangeNotifier {
     }
   }
 
-  // 2. GUARDAR O CREAR 
+  // GUARDAR O CREAR TAREA
   Future<void> saveOrCreateTask() async {
     try {
+      _tempTask.boardId = _selectedBoardId;
+
       if (_tempTask.id == null) {
         final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId.json');
         await http.post(url, body: _tempTask.toJson());
@@ -79,6 +81,7 @@ class TaskService extends ChangeNotifier {
         final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/${_tempTask.id}.json');
         await http.put(url, body: _tempTask.toJson());
       }
+      
       _resetTempTask();
       loadTasks(_selectedBoardId); 
     } catch (e) {
@@ -86,21 +89,49 @@ class TaskService extends ChangeNotifier {
     }
   }
 
-  // 3. MOVER TAREA 
+  // CREAR NUEVO TABLERO 
+  Future<void> createBoard(String userId, String boardName) async {
+    try {
+      final boardUrl = Uri.https(_baseUrl, 'boards.json');
+      final boardData = {
+        'nombre': boardName,
+        'creador': userId,
+        'fechaCreacion': DateTime.now().toIso8601String(),
+      };
+      
+      final response = await http.post(boardUrl, body: json.encode(boardData));
+      final Map<String, dynamic> decodedResp = json.decode(response.body);
+      final String newBoardId = decodedResp['name']; 
+
+      final userBoardUrl = Uri.https(_baseUrl, 'users/$userId/tableros/$newBoardId.json');
+      await http.put(userBoardUrl, body: json.encode(boardName));
+
+      selectedBoardId = newBoardId;
+      
+    } catch (e) {
+      print("Error al crear tablero: $e");
+    }
+  }
+
+  // 4. MOVER TAREa
   Future<void> moveTask(TaskModel task, String newColId) async {
+    final oldColId = task.columnId;
     task.columnId = newColId;
     notifyListeners();
 
     try {
       final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/${task.id}.json');
-      await http.put(url, body: task.toJson());
+      final response = await http.put(url, body: task.toJson());
+      
+      if (response.statusCode >= 400) throw Exception();
     } catch (e) {
       print("Error al mover: $e");
-      loadTasks(_selectedBoardId);
+      task.columnId = oldColId; 
+      notifyListeners();
     }
   }
 
-  // 4. ELIMINAR TAREA
+  // ELIMINAR TAREA
   Future<void> deleteTask(String taskId) async {
     try {
       final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/$taskId.json');

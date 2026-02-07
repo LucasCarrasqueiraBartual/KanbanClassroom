@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'package:kanban_classroom/services/services.dart'; 
-import 'package:kanban_classroom/view/login_view.dart';
+import 'package:kanban_classroom/LoginScreens/login_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Esta línea es la que conecta tu App con las "llaves" del archivo generado
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
