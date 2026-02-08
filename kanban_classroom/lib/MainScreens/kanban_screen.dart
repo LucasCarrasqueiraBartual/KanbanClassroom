@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:kanban_classroom/MainScreens/user_profile_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:kanban_classroom/services/services.dart';
 import 'package:kanban_classroom/models/models.dart';
@@ -33,7 +34,20 @@ class KanbanScreen extends StatelessWidget {
           ),
         ),
         actions: [
-
+        if (taskService.selectedBoardId.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              onPressed: () {
+                // logica para el comapartir
+              },
+            ),
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => Navigator.push(
+              context, 
+              MaterialPageRoute(builder: (context) => const UserProfileView())
+            ),
+          ),
         ],
       ),
       drawer: const KanbanDrawer(),

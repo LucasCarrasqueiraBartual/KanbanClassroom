@@ -55,7 +55,7 @@ class _LoginViewState extends State<LoginView> {
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'Contraseña', border: OutlineInputBorder()),
               ),
-
+            
               const SizedBox(height: 24),
               userService.isLoading 
                 ? const CircularProgressIndicator()
@@ -65,17 +65,36 @@ class _LoginViewState extends State<LoginView> {
                       final error = await userService.login(emailCtrl.text.trim(), passCtrl.text.trim());
                       
                       if (error == null) {
-                        await taskService.loadTasks(userService.tempUser!.id!);
-                        if (mounted) {
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const KanbanScreen()));
+                        final user = userService.tempUser;
+                        if (user != null && user.id != null) {
+                          await taskService.loadTasks(user.id!);
+                          
+                          if (mounted) {
+                            Navigator.pushReplacement(
+                              context, 
+                              MaterialPageRoute(builder: (_) => const KanbanScreen())
+                            );
+                          }
+                        } else {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Error: No se encontraron datos del perfil en la base de datos."),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                          }
                         }
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(error), backgroundColor: Colors.red)
+                          );
+                        }
                       }
                     },
                     child: const Text("Iniciar Sesión"),
                   ),
-
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -87,7 +106,6 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ],
               ),
-
             ],
           ),
         ),

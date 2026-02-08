@@ -89,20 +89,21 @@ class UserService extends ChangeNotifier {
       }
     }
 
-    Future<void> loadUserById(String uid) async {
-      try {
-        final url = Uri.https(_baseUrl, 'users/$uid.json');
-        final response = await http.get(url);
+      Future<void> loadUserById(String uid) async {
+        try {
+          final url = Uri.https(_baseUrl, 'users/$uid.json');
+          final response = await http.get(url);
 
-        if (response.body != 'null' && response.body.isNotEmpty) {
-          tempUser = User.fromMap(json.decode(response.body));
-          tempUser!.id = uid;
+          if (response.body != 'null' && response.body.isNotEmpty) {
+            final Map<String, dynamic> data = json.decode(response.body);
+            tempUser = User.fromMap(data);
+            tempUser!.id = uid; // Forzamos que el ID sea el de Auth
+          }
+        } catch (e) {
+          print("Error al cargar usuario: $e");
         }
-      } catch (e) {
-        print("Error al cargar usuario: $e");
+        notifyListeners();
       }
-      notifyListeners();
-    }
 
     Future<void> logout() async {
       await _firebaseAuth.signOut();
@@ -118,10 +119,64 @@ class UserService extends ChangeNotifier {
       notifyListeners();
     }
 
-  // -- METODOS DE ACTUALIZACIÓN DE UN USUARIO
+// -- METODOS DE ACTUALIZACIÓN DE UN USUARIO
 
-  // TODO: metodo para actualizar el nombre en base de datos
-  //TODO: metodo para actualizar el email
-  //TODO: metodo para eleiminación de un usuario
+  Future<String?> updateUserName(String newName) async {
+    try {
+      if (tempUser == null) return "No hay sesión activa";
+      
+      isLoading = true;
+      notifyListeners();
 
+      final uid = tempUser!.id; 
+      
+      final url = Uri.https(_baseUrl, 'users/$uid.json');
+      
+      await http.patch(url, body: json.encode({
+        'nombre': newName
+      }));
+      tempUser!.nombre = newName;
+      
+      return null; 
+    } catch (e) {
+      return 'Error al actualizar nombre';
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> deleteUserAccount() async {
+  String? error;
+  final user = _firebaseAuth.currentUser;
+  if (user == null) return "No hay sesión activa";
+  
+  final uid = user.uid; 
+
+  try {
+    isLoading = true;
+    notifyListeners();
+
+    //  Borramos de Realtime Database PRIMERO 
+    final url = Uri.https(_baseUrl, 'users/$uid.json');
+    await http.delete(url);
+
+    await user.delete();
+    
+    tempUser = null;
+    error = null;
+  } on auth.FirebaseAuthException catch (e) {
+    if (e.code == 'requires-recent-login') {
+      error = "RE-AUTH";
+    } else {
+      error = e.message;
+    }
+  } catch (e) {
+    error = "Error al eliminar cuenta";
+  } finally {
+    isLoading = false;
+    notifyListeners();
+  }
+  return error;
+}
 }
