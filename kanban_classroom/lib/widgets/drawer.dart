@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:kanban_classroom/services/task_services.dart';
-import 'package:kanban_classroom/services/user_services.dart';
-
+import 'package:kanban_classroom/services/services.dart';
 import 'package:kanban_classroom/LoginScreens/login_view.dart';
 
 class KanbanDrawer extends StatelessWidget {
@@ -12,6 +10,7 @@ class KanbanDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final userService = Provider.of<UserService>(context);
     final taskService = Provider.of<TaskService>(context);
+    final boardService = Provider.of<BoardService>(context); 
 
     if (userService.tempUser == null) {
       return const Drawer(child: Center(child: CircularProgressIndicator()));
@@ -22,19 +21,20 @@ class KanbanDrawer extends StatelessWidget {
       backgroundColor: const Color.fromARGB(230, 255, 255, 255),
       child: Column(
         children: [
+
           UserAccountsDrawerHeader(
             decoration: const BoxDecoration(color: Color.fromARGB(200, 67, 103, 145)),
             accountName: Text(user.nombre),
             accountEmail: Text(user.email),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
-              child: Text(
+                child: Text(
                 user.nombre.isNotEmpty ? user.nombre.substring(0, 1).toUpperCase() : "?",
                 style: const TextStyle(fontSize: 24, color: Color.fromARGB(255, 67, 103, 145)),
               ),
             ),
           ),
-          
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
@@ -45,7 +45,7 @@ class KanbanDrawer extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline, color: Color.fromARGB(255, 67, 103, 145)),
-                  onPressed: () => _showCreateBoardDialog(context, userService),
+                  onPressed: () => _showCreateBoardDialog(context, userService, boardService),
                 )
               ],
             ),
@@ -55,19 +55,35 @@ class KanbanDrawer extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                // LISTA DE TABLEROS EXISTENTES
-                ...user.tableros.entries.map((entry) {
-                  final bool isSelected = taskService.selectedBoardId == entry.key;
-                  return ListTile(
-                    leading: Icon(
-                      Icons.dashboard_outlined,
-                      color: isSelected ? Colors.indigo : null,
-                    ),
-                    title: Text(
-                      entry.value,
-                      style: TextStyle(
+                if (user.tableros.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: Text("No hay tableros", style: TextStyle(color: Colors.grey)),
+                  ),
+                  ...user.tableros.entries.where((e) => e.key.isNotEmpty).map((entry) {
+                    final bool isSelected = taskService.selectedBoardId == entry.key;
+                    return ListTile(
+                      leading: Icon(
+                        Icons.dashboard_outlined,
                         color: isSelected ? Colors.indigo : null,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      title: Text(
+                        entry.value,
+                        style: TextStyle(
+                          color: isSelected ? Colors.indigo : null,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                    ),
+                    // botton de borrar
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                      onPressed: () => _confirmDeleteBoard(
+                        context, 
+                        entry.key, 
+                        entry.value, 
+                        boardService, 
+                        userService, 
+                        taskService
                       ),
                     ),
                     selected: isSelected,
@@ -80,7 +96,7 @@ class KanbanDrawer extends StatelessWidget {
               ],
             ),
           ),
-          
+
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.redAccent),
@@ -96,16 +112,56 @@ class KanbanDrawer extends StatelessWidget {
               }
             },
           ),
+
           const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  // --- FUNCIÓN PARA DIALO
-  void _showCreateBoardDialog(BuildContext context, UserService userService) {
-    String boardName = "";
+    // FUNCION PARA CONFIRMAR ELIMINACION
+  void _confirmDeleteBoard(
+    BuildContext context, 
+    String boardId, 
+    String boardName, 
+    BoardService boardService, 
+    UserService userService,
+    TaskService taskService
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("¿Eliminar tablero?"),
+        content: Text("¿Estás seguro de eliminar '$boardName'? Esta acción no se puede deshacer."),
+        actions: [
 
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("CANCELAR", style: TextStyle(color: Colors.grey)),
+          ),
+
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Cierra el diálogo
+              
+              // Llama a tu servicio de borrado
+              await boardService.deleteBoard(boardId, userService.tempUser!.id!, userService);
+              // Si el tablero borrado es el que está abierto, limpiamos la selección
+              if (taskService.selectedBoardId == boardId) {
+                taskService.selectedBoardId = '';
+              }
+            },
+            child: const Text("ELIMINAR", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  // --- FUNCIÓN PARA DIALOG de creacion Tablero
+  void _showCreateBoardDialog(BuildContext context, UserService userService, BoardService boardService) {
+    String boardName = "";
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -119,39 +175,41 @@ class KanbanDrawer extends StatelessWidget {
           onChanged: (value) => boardName = value,
         ),
         actions: [
+
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text("CANCELAR", style: TextStyle(color: Colors.grey)),
           ),
+
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 67, 103, 145),
             ),
-           onPressed: () async {
-                if (boardName.trim().isNotEmpty) {
-                  //  Creamos el tablero en el UserService
-                  final error = await userService.createBoard(boardName.trim());
+          onPressed: () async {
+            if (boardName.trim().isNotEmpty) {
+              final error = await boardService.createBoard(
+                boardName.trim(), 
+                userService.tempUser!.id!,
+                userService 
+              );
+              
+              if (context.mounted) {
+                if (error == null) {
+                  final taskService = Provider.of<TaskService>(context, listen: false);
                   
-                  if (context.mounted) {
-                    if (error == null) {
-                      final taskService = Provider.of<TaskService>(context, listen: false);
-
-                      //  Buscamos el ID del tablero recién creado
-                      final newBoardId = userService.tempUser!.tableros.keys.last;
-                      
-                      //  Cambiamos el tablero activo
-                      taskService.selectedBoardId = newBoardId;
-                      
-                      Navigator.pop(context); 
-                      Navigator.pop(context); 
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(error))
-                      );
-                    }
+                  if (userService.tempUser!.tableros.isNotEmpty) {
+                    final newId = userService.tempUser!.tableros.entries
+                        .lastWhere((e) => e.value == boardName.trim()).key;
+                    
+                    taskService.selectedBoardId = newId;
                   }
+                  Navigator.pop(context); 
+                  Navigator.pop(context); 
+                } else {
                 }
-              },
+              }
+            }
+          },
             child: const Text("CREAR", style: TextStyle(color: Colors.white)),
           ),
         ],

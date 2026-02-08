@@ -33,24 +33,29 @@ class _RegisterViewState extends State<RegisterView> {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
+
             const Text("Regístrate", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
             const SizedBox(height: 40),
+
             TextField(
               controller: nameCtrl,
               decoration: const InputDecoration(labelText: 'Nombre Completo', border: OutlineInputBorder()),
             ),
+
             const SizedBox(height: 16),
             TextField(
               controller: emailCtrl,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
             ),
+
             const SizedBox(height: 16),
             TextField(
               controller: passCtrl,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'Contraseña', border: OutlineInputBorder()),
             ),
+            
             const SizedBox(height: 24),
             userService.isLoading 
               ? const CircularProgressIndicator()

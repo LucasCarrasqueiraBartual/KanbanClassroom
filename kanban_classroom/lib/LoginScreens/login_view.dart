@@ -37,21 +37,25 @@ class _LoginViewState extends State<LoginView> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+
               const Icon(Icons.house, size: 80, color: Colors.indigo),
               const SizedBox(height: 20),
               const Text("Bienvenido", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
               const SizedBox(height: 40),
+
               TextField(
                 controller: emailCtrl,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
               ),
+
               const SizedBox(height: 16),
               TextField(
                 controller: passCtrl,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'Contraseña', border: OutlineInputBorder()),
               ),
+
               const SizedBox(height: 24),
               userService.isLoading 
                 ? const CircularProgressIndicator()
@@ -71,6 +75,7 @@ class _LoginViewState extends State<LoginView> {
                     },
                     child: const Text("Iniciar Sesión"),
                   ),
+
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -82,6 +87,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ],
               ),
+
             ],
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:kanban_classroom/services/board_services.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'package:kanban_classroom/services/services.dart'; 
@@ -17,6 +18,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => UserService()),
         ChangeNotifierProvider(create: (_) => TaskService()),
+        ChangeNotifierProvider(create: (_) => BoardService())
       ],
       child: const MyApp(),
     ),

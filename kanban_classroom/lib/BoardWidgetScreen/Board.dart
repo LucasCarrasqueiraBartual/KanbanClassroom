@@ -30,7 +30,7 @@ class KanbanBoard extends StatelessWidget {
             KanbanColumn(title: "PENDIENTE", colId: "todo", tasks: taskService.tasks, service: taskService, onEditTask: onEditTask),
             KanbanColumn(title: "EN PROCESO", colId: "process", tasks: taskService.tasks, service: taskService, onEditTask: onEditTask),
             KanbanColumn(title: "HECHO", colId: "done", tasks: taskService.tasks, service: taskService, onEditTask: onEditTask),
-          
+
           ],
         ),
       ),
@@ -61,13 +61,12 @@ class KanbanColumn extends StatelessWidget {
     final columnTasks = tasks.where((t) => t.columnId == colId).toList();
 
     return DragTarget<TaskModel>(
-     
+    
       onWillAcceptWithDetails: (details) => details.data.columnId != colId, 
       onAcceptWithDetails: (details) => service.moveTask(details.data, colId), 
       builder: (context, candidateData, rejectedData) {
-       
-        return AnimatedContainer(
 
+        return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           width: 300, 
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
@@ -85,6 +84,7 @@ class KanbanColumn extends StatelessWidget {
           ),
           child: Column(
             children: [
+
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 25),
                 child: Text(
@@ -97,6 +97,7 @@ class KanbanColumn extends StatelessWidget {
                   )
                 ),
               ),
+
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -111,6 +112,7 @@ class KanbanColumn extends StatelessWidget {
                   ),
                 ),
               ),
+
             ],
           ),
         );

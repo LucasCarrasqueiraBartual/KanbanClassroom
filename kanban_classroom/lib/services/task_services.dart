@@ -14,8 +14,9 @@ class TaskService extends ChangeNotifier {
 
   String get selectedBoardId => _selectedBoardId;
   
-  // setter para que cargue tareas automáticamente al cambiar de tablero
+  // Al cambiar el ID,  se carga tareas automáticamente
   set selectedBoardId(String val) {
+    if (_selectedBoardId == val) return; 
     _selectedBoardId = val;
     loadTasks(val); 
     notifyListeners();
@@ -40,14 +41,13 @@ class TaskService extends ChangeNotifier {
     );
   }
 
-  // --- MÉTODOS HTTP ---
-
+  // --- MÉTODOS HTTP 
   Future<void> loadTasks(String boardId) async {
     if (boardId.isEmpty) return;
     
     try {
       isLoading = true;
-      _selectedBoardId = boardId; 
+      notifyListeners(); 
 
       final url = Uri.https(_baseUrl, 'tasks/$boardId.json');
       final response = await http.get(url);
@@ -71,8 +71,13 @@ class TaskService extends ChangeNotifier {
 
   // GUARDAR O CREAR TAREA
   Future<void> saveOrCreateTask() async {
-    try {
-      _tempTask.boardId = _selectedBoardId;
+    if (_selectedBoardId.isEmpty) {
+      print("Error: Intentando guardar tarea sin tablero seleccionado");
+      return;
+    }
+  
+  try {
+    _tempTask.boardId = _selectedBoardId;
 
       if (_tempTask.id == null) {
         final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId.json');
@@ -89,35 +94,11 @@ class TaskService extends ChangeNotifier {
     }
   }
 
-  // CREAR NUEVO TABLERO 
-  Future<void> createBoard(String userId, String boardName) async {
-    try {
-      final boardUrl = Uri.https(_baseUrl, 'boards.json');
-      final boardData = {
-        'nombre': boardName,
-        'creador': userId,
-        'fechaCreacion': DateTime.now().toIso8601String(),
-      };
-      
-      final response = await http.post(boardUrl, body: json.encode(boardData));
-      final Map<String, dynamic> decodedResp = json.decode(response.body);
-      final String newBoardId = decodedResp['name']; 
-
-      final userBoardUrl = Uri.https(_baseUrl, 'users/$userId/tableros/$newBoardId.json');
-      await http.put(userBoardUrl, body: json.encode(boardName));
-
-      selectedBoardId = newBoardId;
-      
-    } catch (e) {
-      print("Error al crear tablero: $e");
-    }
-  }
-
-  // 4. MOVER TAREa
+  // MOVER TAREA 
   Future<void> moveTask(TaskModel task, String newColId) async {
     final oldColId = task.columnId;
     task.columnId = newColId;
-    notifyListeners();
+    notifyListeners(); // movemos en la UI antes de enviar al servidor
 
     try {
       final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/${task.id}.json');
@@ -126,7 +107,7 @@ class TaskService extends ChangeNotifier {
       if (response.statusCode >= 400) throw Exception();
     } catch (e) {
       print("Error al mover: $e");
-      task.columnId = oldColId; 
+      task.columnId = oldColId;
       notifyListeners();
     }
   }

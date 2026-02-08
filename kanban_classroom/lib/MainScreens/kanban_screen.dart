@@ -11,7 +11,6 @@ class KanbanScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final taskService = Provider.of<TaskService>(context);
     final userService = Provider.of<UserService>(context);
 
@@ -19,10 +18,13 @@ class KanbanScreen extends StatelessWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     String currentBoardName = userService.tempUser!.tableros[taskService.selectedBoardId] ?? "Tablero Personal";
-   
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(currentBoardName, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          taskService.selectedBoardId.isEmpty ? "Kanban Classroom" : currentBoardName, 
+          style: const TextStyle(fontWeight: FontWeight.bold)
+        ),
         backgroundColor: Colors.white.withOpacity(0.2),
         flexibleSpace: ClipRect(
           child: BackdropFilter(
@@ -30,45 +32,77 @@ class KanbanScreen extends StatelessWidget {
             child: Container(color: Colors.transparent),
           ),
         ),
+        actions: [
+
+        ],
       ),
       drawer: const KanbanDrawer(),
-      body: Stack( //  Stack para las capas, gradiente
+      body: Stack(
         children: [
+  
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                 Color(0xFFE0EAFC), 
-                 Color.fromARGB(255, 67, 103, 145), 
-                 Color.fromARGB(255, 79, 121, 150), 
+                  Color(0xFFE0EAFC), 
+                  Color.fromARGB(255, 67, 103, 145), 
+                  Color.fromARGB(255, 79, 121, 150), 
                 ],
               ),
             ),
           ),
+
           SafeArea( 
-            child: taskService.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : KanbanBoard(
-                    taskService: taskService, 
-                    userId: taskService.selectedBoardId, 
-                    onEditTask: (p1) => _showTaskDialog(context, taskService, task: p1),
-                  ),
+            child: taskService.selectedBoardId.isEmpty
+              ? _buildEmptyState()
+              : taskService.isLoading
+                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                  : KanbanBoard(
+                      taskService: taskService, 
+                    
+                      userId: taskService.selectedBoardId, 
+                      onEditTask: (p1) => _showTaskDialog(context, taskService, task: p1),
+                    ),
+
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.indigo.withOpacity(0.8),
-        elevation: 4,
-        onPressed: () => _showTaskDialog(context, taskService),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-    );}
+      floatingActionButton: taskService.selectedBoardId.isEmpty 
+        ? null 
+        : FloatingActionButton(
+            backgroundColor: Colors.indigo.withOpacity(0.8),
+            elevation: 4,
+            onPressed: () => _showTaskDialog(context, taskService),
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+    );
+  }
+
+    // auxiliar 
+  Widget _buildEmptyState() {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons. dashboard_outlined, size: 100, color: Colors.white.withOpacity(0.5)),
+            const SizedBox(height: 20),
+            const Text(
+              "No hay ningún tablero seleccionado",
+              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w300),
+            ),
+            const Text(
+              "Abre el menú y crea uno nuevo",
+              style: TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+          ],
+        ),
+      );
+  }
 
 
   void _showTaskDialog(BuildContext context, TaskService service, {TaskModel? task}) {
-  
     final isEditing = task != null;
     final temp = isEditing 
         ? task.copy() 
@@ -110,15 +144,16 @@ class KanbanScreen extends StatelessWidget {
                     onChanged: (val) => temp.description = val,
                     decoration: const InputDecoration(labelText: "Descripción"),
                 ),
+
                 TextField(
                   controller: TextEditingController(text: temp.author),
                   onChanged: (val) => temp.author = val,
                   decoration: const InputDecoration(
                     labelText: "Autor de la tarea"
                   ),
-                ), 
-                 const SizedBox(height: 20),
-              
+                ),
+
+                const SizedBox(height: 20),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.calendar_today),
@@ -133,9 +168,10 @@ class KanbanScreen extends StatelessWidget {
                       if (picked != null) setState(() => temp.dueDate = picked);
                   },
                 ),
+
               ],
             ),
-          ),  actions: [
+          ),actions: [
                   TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
                       ElevatedButton(
                         onPressed: () {
@@ -147,9 +183,9 @@ class KanbanScreen extends StatelessWidget {
                       ),
                 ],
           ),
-    ),
-  )
-  );
- }
+        ),
+      )
+    );
+  }
 }
 

@@ -3,7 +3,6 @@ import 'package:kanban_classroom/models/models.dart';
 import 'package:kanban_classroom/services/services.dart';
 
 class TaskCard extends StatelessWidget {
- 
   final TaskModel task;
   final TaskService service;
   final VoidCallback onTap;
@@ -50,6 +49,7 @@ class TaskCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -60,9 +60,11 @@ class TaskCard extends StatelessWidget {
                 ),
               ],
             ),
+
             if (task.description.isNotEmpty)
               Text(task.description, style: const TextStyle(fontSize: 12, color: Colors.grey)),
             const Divider(),
+
             Row(
               children: [
                 const Icon(Icons.person, size: 12, color: Colors.indigo),
@@ -74,6 +76,7 @@ class TaskCard extends StatelessWidget {
                 Text("${task.dueDate.day}/${task.dueDate.month}", style: const TextStyle(fontSize: 10)),
               ],
             )
+
           ],
         ),
       ),
