@@ -147,36 +147,98 @@ class UserService extends ChangeNotifier {
   }
 
   Future<String?> deleteUserAccount() async {
-  String? error;
-  final user = _firebaseAuth.currentUser;
-  if (user == null) return "No hay sesión activa";
-  
-  final uid = user.uid; 
+    String? error;
+    final user = _firebaseAuth.currentUser;
+    if (user == null) return "No hay sesión activa";
+    
+    final uid = user.uid; 
 
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final url = Uri.https(_baseUrl, 'users/$uid.json');
+      await http.delete(url);
+
+      await user.delete();
+      
+      tempUser = null;
+      error = null;
+    } on auth.FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        error = "RE-AUTH";
+      } else {
+        error = e.message;
+      }
+    } catch (e) {
+      error = "Error al eliminar cuenta";
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+    return error;
+  }
+
+  Future<Map<String, String>?> findUserByEmail(String email) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final url = Uri.https(_baseUrl, 'users.json');
+      final response = await http.get(url);
+
+      if (response.body == 'null' || response.body.isEmpty) return null;
+
+      final Map<String, dynamic> data = json.decode(response.body);
+
+      for (var entry in data.entries) {
+        final userData = entry.value as Map<String, dynamic>;
+        if (userData['email'].toString().toLowerCase() == email.toLowerCase().trim()) {
+          return {
+            'id': entry.key,
+            'nombre': userData['nombre'] ?? 'Sin nombre',
+            'email': userData['email']
+          };
+        }
+      }
+      return null; 
+    } catch (e) {
+      print("Error buscando usuario: $e");
+      return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+      Future<String?> compartirTablero({
+  required String emailInvitado,
+  required String boardId, 
+  required String boardNombre,
+}) async {
   try {
     isLoading = true;
     notifyListeners();
 
-    //  Borramos de Realtime Database PRIMERO 
-    final url = Uri.https(_baseUrl, 'users/$uid.json');
-    await http.delete(url);
+    final invitado = await findUserByEmail(emailInvitado);
+    if (invitado == null) return "Usuario no encontrado";
+    final invitadoId = invitado['id']!;
 
-    await user.delete();
-    
-    tempUser = null;
-    error = null;
-  } on auth.FirebaseAuthException catch (e) {
-    if (e.code == 'requires-recent-login') {
-      error = "RE-AUTH";
-    } else {
-      error = e.message;
-    }
+    final urlUser = Uri.https(_baseUrl, 'users/$invitadoId/tableros.json');
+    await http.patch(urlUser, body: json.encode({
+      boardId: boardNombre 
+    }));
+
+    final urlBoard = Uri.https(_baseUrl, 'boards/$boardId/colaboradores.json');
+    await http.patch(urlBoard, body: json.encode({
+      invitadoId: true
+    }));
+
+    return null; 
   } catch (e) {
-    error = "Error al eliminar cuenta";
+    return "Error: $e";
   } finally {
     isLoading = false;
     notifyListeners();
   }
-  return error;
-}
+ }
 }

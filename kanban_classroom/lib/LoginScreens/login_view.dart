@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:kanban_classroom/models/task_model.dart';
-import 'package:kanban_classroom/models/user_model.dart';
 import 'package:kanban_classroom/services/services.dart';
 import '../MainScreens/kanban_screen.dart';
 import 'register_view.dart';

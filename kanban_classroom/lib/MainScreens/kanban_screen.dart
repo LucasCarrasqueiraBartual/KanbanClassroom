@@ -34,13 +34,29 @@ class KanbanScreen extends StatelessWidget {
           ),
         ),
         actions: [
-        if (taskService.selectedBoardId.isNotEmpty)
+          if (taskService.selectedBoardId.isNotEmpty)
+
             IconButton(
-              icon: const Icon(Icons.share_outlined),
-              onPressed: () {
-                // logica para el comapartir
-              },
+              icon: taskService.isLoading 
+                ? const SizedBox(
+                    width: 20, 
+                    height: 20, 
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
+                  )
+                : const Icon(Icons.refresh),
+              tooltip: "Refrescar tareas",
+              onPressed: taskService.isLoading 
+                ? null 
+                : () => taskService.loadTasks(taskService.selectedBoardId),
             ),
+
+          if (taskService.selectedBoardId.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.person_add_alt_1),
+              tooltip: "Compartir tablero",
+              onPressed: () => _mostrarDialogoCompartir(context),
+            ),
+
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () => Navigator.push(
@@ -53,7 +69,6 @@ class KanbanScreen extends StatelessWidget {
       drawer: const KanbanDrawer(),
       body: Stack(
         children: [
-  
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -71,15 +86,17 @@ class KanbanScreen extends StatelessWidget {
           SafeArea( 
             child: taskService.selectedBoardId.isEmpty
               ? _buildEmptyState()
-              : taskService.isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                  : KanbanBoard(
-                      taskService: taskService, 
-                    
-                      userId: taskService.selectedBoardId, 
-                      onEditTask: (p1) => _showTaskDialog(context, taskService, task: p1),
-                    ),
-
+              : RefreshIndicator( 
+                  onRefresh: () => taskService.loadTasks(taskService.selectedBoardId),
+                  color: Colors.indigo,
+                  child: taskService.isLoading && taskService.tasks.isEmpty
+                    ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                    : KanbanBoard(
+                        taskService: taskService, 
+                        userId: taskService.selectedBoardId, 
+                        onEditTask: (p1) => _showTaskDialog(context, taskService, task: p1),
+                      ),
+                ),
           ),
         ],
       ),
@@ -114,6 +131,84 @@ class KanbanScreen extends StatelessWidget {
         ),
       );
   }
+
+    void _mostrarDialogoCompartir(BuildContext context) {
+      final emailController = TextEditingController();
+      final userService = Provider.of<UserService>(context, listen: false);
+      
+      final taskService = Provider.of<TaskService>(context, listen: false);
+      final String boardIdActual = taskService.selectedBoardId;
+      
+      final String boardNombreActual = userService.tempUser?.tableros[boardIdActual] ?? "Tablero Compartido";
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.share, color: Color.fromARGB(255, 67, 103, 145)),
+              SizedBox(width: 10),
+              Text("Compartir Tablero"),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Compartiendo: $boardNombreActual", style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              const Text("Introduce el email del colaborador:"),
+              const SizedBox(height: 15),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: "Email del colaborador",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("CANCELAR"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final email = emailController.text.trim();
+                
+                if (email == userService.tempUser?.email) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Ya eres el dueño de este tablero"))
+                  );
+                  return;
+                }
+
+                if (email.isNotEmpty) {
+                  final error = await userService.compartirTablero(
+                    emailInvitado: email,
+                    boardId: boardIdActual,      
+                    boardNombre: boardNombreActual, 
+                  );
+
+                  if (context.mounted) {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(error ?? "¡Tablero compartido con éxito!"),
+                        backgroundColor: error == null ? Colors.green : Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text("COMPARTIR"),
+            ),
+          ],
+        ),
+      );
+    }
 
 
   void _showTaskDialog(BuildContext context, TaskService service, {TaskModel? task}) {

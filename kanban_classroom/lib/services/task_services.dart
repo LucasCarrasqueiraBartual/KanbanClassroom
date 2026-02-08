@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -5,7 +6,7 @@ import 'package:kanban_classroom/models/models.dart';
 
 class TaskService extends ChangeNotifier {
   final String _baseUrl = "kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app"; 
-  
+
   List<TaskModel> tasks = [];
   bool isLoading = false;
 
@@ -14,14 +15,6 @@ class TaskService extends ChangeNotifier {
 
   String get selectedBoardId => _selectedBoardId;
   
-  // Al cambiar el ID,  se carga tareas automáticamente
-  set selectedBoardId(String val) {
-    if (_selectedBoardId == val) return; 
-    _selectedBoardId = val;
-    loadTasks(val); 
-    notifyListeners();
-  }
-
   TaskModel get tempTask => _tempTask;
   set tempTask(TaskModel val) {
     _tempTask = val;
@@ -41,33 +34,45 @@ class TaskService extends ChangeNotifier {
     );
   }
 
+  set selectedBoardId(String val) {
+      if (_selectedBoardId == val) return; 
+      _selectedBoardId = val;
+      loadTasks(val); 
+      notifyListeners();
+    }
+
+
   // --- MÉTODOS HTTP 
-  Future<void> loadTasks(String boardId) async {
-    if (boardId.isEmpty) return;
-    
-    try {
+  
+    Future<void> loadTasks(String boardId) async {
+      if (boardId.isEmpty) return;
+      
       isLoading = true;
       notifyListeners(); 
 
-      final url = Uri.https(_baseUrl, 'tasks/$boardId.json');
-      final response = await http.get(url);
+      try {
+        final url = Uri.https(_baseUrl, 'tasks/$boardId.json');
+        final response = await http.get(url);
 
-      tasks.clear();
-      if (response.body != 'null' && response.body.isNotEmpty) {
-        final Map<String, dynamic> tasksMap = json.decode(response.body);
-        tasksMap.forEach((key, value) {
-          final auxTask = TaskModel.fromMap(value);
-          auxTask.id = key;
-          tasks.add(auxTask);
-        });
+        if (response.body != 'null' && response.body.isNotEmpty) {
+          final Map<String, dynamic> tasksMap = json.decode(response.body);
+          List<TaskModel> newTasks = [];
+          tasksMap.forEach((key, value) {
+            final auxTask = TaskModel.fromMap(value);
+            auxTask.id = key;
+            newTasks.add(auxTask);
+          });
+          tasks = newTasks;
+        } else {
+          tasks = [];
+        }
+      } catch (e) {
+        print("Error: $e");
+      } finally {
+        isLoading = false;
+        notifyListeners();
       }
-    } catch (e) {
-      print("Error cargando tareas: $e");
-    } finally {
-      isLoading = false;
-      notifyListeners();
     }
-  }
 
   // GUARDAR O CREAR TAREA
   Future<void> saveOrCreateTask() async {
