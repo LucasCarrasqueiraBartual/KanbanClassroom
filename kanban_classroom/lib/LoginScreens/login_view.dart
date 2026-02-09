@@ -45,16 +45,14 @@ class _LoginViewState extends State<LoginView> {
                 controller: emailCtrl,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-              ),
+              ),const SizedBox(height: 16),
 
-              const SizedBox(height: 16),
               TextField(
                 controller: passCtrl,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'Contraseña', border: OutlineInputBorder()),
-              ),
-            
-              const SizedBox(height: 24),
+              ),const SizedBox(height: 24),
+
               userService.isLoading 
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
@@ -68,8 +66,7 @@ class _LoginViewState extends State<LoginView> {
                           await taskService.loadTasks(user.id!);
                           
                           if (mounted) {
-                            Navigator.pushReplacement(
-                              context, 
+                            Navigator.pushReplacement(context, 
                               MaterialPageRoute(builder: (_) => const KanbanScreen())
                             );
                           }
@@ -93,7 +90,59 @@ class _LoginViewState extends State<LoginView> {
                     },
                     child: const Text("Iniciar Sesión"),
                   ),
+
               const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              const Row(
+                children: [
+                  Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Text("O"),
+                  ),
+                  Expanded(child: Divider()),
+                ],
+              ),const SizedBox(height: 16),
+
+              userService.isLoading 
+                ? const SizedBox.shrink()
+                : OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                      side: const BorderSide(color: Colors.grey),
+                    ),
+                    onPressed: () async {
+                      final error = await userService.loginWithGoogle();
+                      
+                      if (error == null) {
+                        final user = userService.tempUser;
+                        if (user != null && user.id != null) {
+                          await taskService.loadTasks(user.id!);
+                          if (mounted) {
+                            Navigator.pushReplacement(
+                              context, 
+                              MaterialPageRoute(builder: (_) => const KanbanScreen())
+                            );
+                          }
+                        }
+                      } else if (error != "Login cancelado") {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(error), backgroundColor: Colors.red)
+                          );
+                        }
+                      }
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.account_circle, color: Colors.red),
+                        const SizedBox(width: 10),
+                        const Text("Continuar con Google", style: TextStyle(color: Colors.black87)),
+                      ],
+                    ),
+                  ),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -104,6 +153,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ],
               ),
+
             ],
           ),
         ),

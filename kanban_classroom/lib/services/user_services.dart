@@ -1,67 +1,66 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart' as auth; 
 import 'package:kanban_classroom/models/user_model.dart';
 
 class UserService extends ChangeNotifier {
-  
-  final String _baseUrl = "kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app";
-  final auth.FirebaseAuth _firebaseAuth = auth.FirebaseAuth.instance;
-  
-  List<User> users = [];
-  User? tempUser; 
-  bool isLoading = false;
+    final String _baseUrl = "kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app"; 
 
-  UserService() {
-    checkCurrentUser();
-  }
+    final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;
+    final GoogleSignIn _googleSignIn = GoogleSignIn(); 
 
-  // --- MÉTODOS DE AUTENTICACIÓN DE USUARIO
+    List<User> users = [];
+    User? tempUser; 
+    bool isLoading = false;
 
-    // Metodo de comprpovación
-    Future<void> checkCurrentUser() async {
-      final currentUser = _firebaseAuth.currentUser;
-      if (currentUser != null) {
-        await loadUserById(currentUser.uid);
-      }
+    UserService() {
+      checkCurrentUser();
     }
+
+    // --- MÉTODOS DE AUTENTICACIÓN
+
+      Future<void> checkCurrentUser() async {
+        final currentUser = _auth.currentUser;
+        if (currentUser != null) {
+          await loadUserById(currentUser.uid);
+        }
+      }
 
     // Metodo para resgistrarse
     Future<String?> registerUser({
-      required String email, 
-      required String password, 
-      required String nombre
-    }) async {
-      try {
-        isLoading = true;
-        notifyListeners();
+        required String email, 
+        required String password, 
+        required String nombre
+        }) async { 
+        try {
+          isLoading = true;
+          notifyListeners();
 
-        final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-          email: email, 
-          password: password
-        );
+            final credential = await _auth.createUserWithEmailAndPassword(
+              email: email, 
+              password: password
+            );
 
-        final newUser = User(
-          id: credential.user!.uid,
-          nombre: nombre,
-          email: email,
-          verificado: true,
-          tableros: {
-            credential.user!.uid: "Mi Tablero Personal" 
-          },
-        );
+              final newUser = User(
+                id: credential.user!.uid,
+                nombre: nombre,
+                email: email,
+                verificado: true,
+                tableros: {},
+              );
 
-        final url = Uri.https(_baseUrl, 'users/${newUser.id}.json');
-        await http.put(url, body: newUser.toJson());
+            final url = Uri.https(_baseUrl, 'users/${newUser.id}.json');
+            await http.put(url, body: newUser.toJson());
 
-        tempUser = newUser;
-        return null; 
-      } on auth.FirebaseAuthException catch (e) {
-        return e.message; 
-      } catch (e) {
-        return "Ocurrió un error inesperado al registrar.";
-      } finally {
+          tempUser = newUser;
+          return null; 
+            } on auth.FirebaseAuthException catch (e) {
+              return e.message; 
+          } catch (e) {
+            return "Ocurrió un error inesperado al registrar.";
+        } finally {
         isLoading = false;
         notifyListeners();
       }
@@ -70,44 +69,44 @@ class UserService extends ChangeNotifier {
     // Metodo para realizar el login 
     Future<String?> login(String email, String password) async {
       try {
-        isLoading = true;
-        notifyListeners();
+          isLoading = true;
+          notifyListeners();
 
-        final credential = await _firebaseAuth.signInWithEmailAndPassword(
-          email: email, 
-          password: password
-        );
+          final credential = await _auth.signInWithEmailAndPassword(
+            email: email, 
+            password: password
+          );
 
-        await loadUserById(credential.user!.uid);
-        return null; 
+          await loadUserById(credential.user!.uid);
+          return null; 
 
-      } on auth.FirebaseAuthException catch (e) {
-        return "Credenciales incorrectas o usuario no encontrado.";
-      } finally {
-        isLoading = false;
-        notifyListeners();
+        } on auth.FirebaseAuthException {
+          return "Credenciales incorrectas o usuario no encontrado.";
+        } finally {
+          isLoading = false;
+          notifyListeners();
       }
     }
 
-      Future<void> loadUserById(String uid) async {
-        try {
+    Future<void> logout() async {
+      await _auth.signOut();
+      tempUser = null;
+      notifyListeners();
+    }
+
+    Future<void> loadUserById(String uid) async {
+      try {
           final url = Uri.https(_baseUrl, 'users/$uid.json');
           final response = await http.get(url);
 
           if (response.body != 'null' && response.body.isNotEmpty) {
             final Map<String, dynamic> data = json.decode(response.body);
             tempUser = User.fromMap(data);
-            tempUser!.id = uid; // Forzamos que el ID sea el de Auth
+            tempUser!.id = uid; 
           }
         } catch (e) {
           print("Error al cargar usuario: $e");
         }
-        notifyListeners();
-      }
-
-    Future<void> logout() async {
-      await _firebaseAuth.signOut();
-      tempUser = null;
       notifyListeners();
     }
 
@@ -117,6 +116,101 @@ class UserService extends ChangeNotifier {
       final url = Uri.https(_baseUrl, 'users/${tempUser!.id}.json');
       await http.put(url, body: tempUser!.toJson());
       notifyListeners();
+    }
+
+  // --- METODOS PARA AUTENTICATION GOOGLE
+
+    Future<String?> loginWithGoogle() async {
+      try {
+        final GoogleSignInAccount? gUser = await _googleSignIn.signIn();
+        if (gUser == null) return "Login cancelado";
+
+        // Consigue las llaves de acceso
+        final GoogleSignInAuthentication gAuth = await gUser.authentication;
+        final credential = auth.GoogleAuthProvider.credential(
+          accessToken: gAuth.accessToken,
+          idToken: gAuth.idToken,
+        );
+
+        final userCredential = await _auth.signInWithCredential(credential);
+        
+        await _synchronizeWithRealtime(userCredential.user!);
+        
+        return null; 
+      } catch (e) {
+        print("Error en Google Login: $e");
+        return "Error al conectar con Google: $e";
+      }
+    }
+
+    
+    Future<void> _synchronizeWithRealtime(auth.User fUser) async {
+      final url = Uri.https(_baseUrl, 'users/${fUser.uid}.json');
+      final resp = await http.get(url);
+
+      if (resp.body == 'null') {
+        final nuevoUsuario = User(
+          id: fUser.uid, 
+          nombre: fUser.displayName ?? "Usuario de Google", 
+          email: fUser.email ?? "sin@email.com",
+          verificado: true,
+          tableros: {},
+        );
+
+        await http.put(url, body: json.encode(nuevoUsuario.toMap()));
+        tempUser = nuevoUsuario;
+      } else {
+        final Map<String, dynamic> userData = json.decode(resp.body);
+        tempUser = User.fromMap(userData);
+        tempUser!.id = fUser.uid; 
+      }
+      
+      notifyListeners();
+    }
+
+    Future<void> logoutGoogle() async {
+      try {
+        await _googleSignIn.signOut(); 
+        await _auth.signOut();        
+        tempUser = null;
+        notifyListeners();
+      } catch (e) {
+        print("Error al cerrar sesión: $e");
+      }
+    }
+
+    Future<String?> deleteUserAccountGoogle() async {
+      final user = _auth.currentUser;
+      if (user == null) return "No hay sesión activa";
+      
+      final uid = user.uid; 
+
+      try {
+        isLoading = true;
+        notifyListeners();
+
+        final url = Uri.https(_baseUrl, 'users/$uid.json');
+        await http.delete(url);
+
+        if (_googleSignIn.currentUser != null) {
+          await _googleSignIn.disconnect(); 
+        }
+
+        await user.delete();
+        
+        tempUser = null;
+        return null; 
+      } on auth.FirebaseAuthException catch (e) {
+        if (e.code == 'requires-recent-login') {
+          return "RE-AUTH"; 
+        }
+        return e.message;
+      } catch (e) {
+        return "Error al eliminar cuenta";
+      } finally {
+        isLoading = false;
+        notifyListeners();
+      }
     }
 
 // -- METODOS DE ACTUALIZACIÓN DE UN USUARIO
@@ -148,7 +242,7 @@ class UserService extends ChangeNotifier {
 
   Future<String?> deleteUserAccount() async {
     String? error;
-    final user = _firebaseAuth.currentUser;
+    final user = _auth.currentUser;
     if (user == null) return "No hay sesión activa";
     
     final uid = user.uid; 

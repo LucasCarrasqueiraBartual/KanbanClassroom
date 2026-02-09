@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:kanban_classroom/services/services.dart';
@@ -16,6 +17,7 @@ class KanbanDrawer extends StatelessWidget {
       return const Drawer(child: Center(child: CircularProgressIndicator()));
     }
     final user = userService.tempUser!;
+    final String? photoUrl = auth.FirebaseAuth.instance.currentUser?.photoURL;
 
     return Drawer(
       backgroundColor: const Color.fromARGB(230, 255, 255, 255),
@@ -26,12 +28,14 @@ class KanbanDrawer extends StatelessWidget {
             decoration: const BoxDecoration(color: Color.fromARGB(200, 67, 103, 145)),
             accountName: Text(user.nombre),
             accountEmail: Text(user.email),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.white,
-                child: Text(
-                user.nombre.isNotEmpty ? user.nombre.substring(0, 1).toUpperCase() : "?",
-                style: const TextStyle(fontSize: 24, color: Color.fromARGB(255, 67, 103, 145)),
-              ),
+            currentAccountPicture: CircleAvatar(backgroundColor: Colors.white,
+              backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+              child: photoUrl == null 
+                ? Text(
+                    user.nombre.isNotEmpty ? user.nombre.substring(0, 1).toUpperCase() : "?",
+                    style: const TextStyle(fontSize: 24, color: Color.fromARGB(255, 67, 103, 145)),
+                  )
+                : null, 
             ),
           ),
 
@@ -74,7 +78,6 @@ class KanbanDrawer extends StatelessWidget {
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                     ),
-                    // botton de borrar
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
                       onPressed: () => _confirmDeleteBoard(
@@ -142,9 +145,7 @@ class KanbanDrawer extends StatelessWidget {
 
           TextButton(
             onPressed: () async {
-              Navigator.pop(context); // Cierra el diálogo
-              
-              // Llama a tu servicio de borrado
+              Navigator.pop(context); 
               await boardService.deleteBoard(boardId, userService.tempUser!.id!, userService);
               // Si el tablero borrado es el que está abierto, limpiamos la selección
               if (taskService.selectedBoardId == boardId) {
@@ -157,9 +158,7 @@ class KanbanDrawer extends StatelessWidget {
       ),
     );
   }
-
-
-  // --- FUNCIÓN PARA DIALOG de creacion Tablero
+  
   void _showCreateBoardDialog(BuildContext context, UserService userService, BoardService boardService) {
     String boardName = "";
     showDialog(

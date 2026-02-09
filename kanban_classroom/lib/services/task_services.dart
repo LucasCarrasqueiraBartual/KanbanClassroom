@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:kanban_classroom/models/models.dart';
+import 'package:kanban_classroom/services/notification_services.dart';
 
 class TaskService extends ChangeNotifier {
   final String _baseUrl = "kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app"; 
@@ -76,26 +77,39 @@ class TaskService extends ChangeNotifier {
 
   // GUARDAR O CREAR TAREA
   Future<void> saveOrCreateTask() async {
-    if (_selectedBoardId.isEmpty) {
-      print("Error: Intentando guardar tarea sin tablero seleccionado");
-      return;
-    }
-  
-  try {
-    _tempTask.boardId = _selectedBoardId;
+    if (_selectedBoardId.isEmpty) return;
+    try {
+      _tempTask.boardId = _selectedBoardId;
+      String? taskId = _tempTask.id;
 
       if (_tempTask.id == null) {
         final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId.json');
-        await http.post(url, body: _tempTask.toJson());
+        final response = await http.post(url, body: _tempTask.toJson());
+        
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> data = json.decode(response.body);
+          taskId = data['name']; 
+        }
       } else {
         final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/${_tempTask.id}.json');
         await http.put(url, body: _tempTask.toJson());
+        
+        NotificationService.cancelarAvisoTarea(taskId.hashCode);
       }
-      
+
+      // --- PROGRAMAR NOTIFICACIÓN ---
+      if (taskId != null && _tempTask.dueDate != null) {
+        await NotificationService.programarAvisoTarea(
+          id: taskId.hashCode, 
+          titulo: _tempTask.title ?? "Nueva Tarea",
+          fechaEntrega: _tempTask.dueDate!, 
+        );
+      }
+
       _resetTempTask();
-      loadTasks(_selectedBoardId); 
+      loadTasks(_selectedBoardId);
     } catch (e) {
-      print("Error al guardar: $e");
+      print("Error al guardar y programar notificación: $e");
     }
   }
 
@@ -103,8 +117,7 @@ class TaskService extends ChangeNotifier {
   Future<void> moveTask(TaskModel task, String newColId) async {
     final oldColId = task.columnId;
     task.columnId = newColId;
-    notifyListeners(); // movemos en la UI antes de enviar al servidor
-
+    notifyListeners(); 
     try {
       final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/${task.id}.json');
       final response = await http.put(url, body: task.toJson());
@@ -119,14 +132,18 @@ class TaskService extends ChangeNotifier {
 
   // ELIMINAR TAREA
   Future<void> deleteTask(String taskId) async {
-    try {
-      final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/$taskId.json');
-      await http.delete(url);
-      
-      tasks.removeWhere((t) => t.id == taskId);
-      notifyListeners();
-    } catch (e) {
-      print("Error al borrar: $e");
-    }
+  try {
+    await NotificationService.cancelarAvisoTarea(taskId.hashCode);
+    print("Notificación para la tarea $taskId cancelada con éxito");
+
+    final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/$taskId.json');
+    await http.delete(url);
+    
+    tasks.removeWhere((t) => t.id == taskId);
+    notifyListeners();
+    
+  } catch (e) {
+    print("Error al borrar la tarea o la notificación: $e");
   }
+}
 }

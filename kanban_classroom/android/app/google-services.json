@@ -13,7 +13,20 @@
           "package_name": "com.example.kanban_classroom"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "613447001121-f5gbmn5mfhm19kngmlsqr84goht4vdh6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.kanban_classroom",
+            "certificate_hash": "778743f7e15552a61c4710d65af67a34119c3d71"
+          }
+        },
+        {
+          "client_id": "613447001121-rqeqo29uitjmhgvdqcb98m4lrpjcq7ub.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCRAIF35L1gJOTIRkTnvUX4-7Z0Frn5bPk"
@@ -21,7 +34,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "613447001121-rqeqo29uitjmhgvdqcb98m4lrpjcq7ub.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "613447001121-tvm9mcjj454k8nd6paj0on3t7eb3ribm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.kanbanClassroom"
+              }
+            }
+          ]
         }
       }
     }
