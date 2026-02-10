@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "613447001121-4cera58q47tjr85cb0co4op70unkg78o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.kanban_classroom",
+            "certificate_hash": "f6d4601e1bbe8082939c86ab56792e81eb1a8470"
+          }
+        },
+        {
           "client_id": "613447001121-f5gbmn5mfhm19kngmlsqr84goht4vdh6.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
