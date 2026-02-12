@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:kanban_classroom/MainScreens/user_profile_screen.dart';
+import 'package:kanban_classroom/services/classroom_services.dart';
 import 'package:provider/provider.dart';
 import 'package:kanban_classroom/services/services.dart';
 import 'package:kanban_classroom/models/models.dart';
@@ -14,6 +15,13 @@ class KanbanScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final taskService = Provider.of<TaskService>(context);
     final userService = Provider.of<UserService>(context);
+
+    final classroomService = Provider.of<ClassroomService>(context, listen: false);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      classroomService.signInAndPrintCourses();
+    });
+
 
     if (userService.tempUser == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -100,6 +108,7 @@ class KanbanScreen extends StatelessWidget {
           ),
         ],
       ),
+     
       floatingActionButton: taskService.selectedBoardId.isEmpty 
         ? null 
         : FloatingActionButton(
