@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -6,16 +5,17 @@ import 'package:kanban_classroom/models/models.dart';
 import 'package:kanban_classroom/services/notification_services.dart';
 
 class TaskService extends ChangeNotifier {
-  final String _baseUrl = "kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app"; 
+  final String _baseUrl =
+      'kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app';
 
   List<TaskModel> tasks = [];
   bool isLoading = false;
 
-  String _selectedBoardId = ''; 
+  String _selectedBoardId = '';
   late TaskModel _tempTask;
 
   String get selectedBoardId => _selectedBoardId;
-  
+
   TaskModel get tempTask => _tempTask;
   set tempTask(TaskModel val) {
     _tempTask = val;
@@ -28,54 +28,50 @@ class TaskService extends ChangeNotifier {
 
   void _resetTempTask() {
     _tempTask = TaskModel(
-      title: '', 
-      description: '', 
-      columnId: 'todo', 
-      boardId: _selectedBoardId 
+      title: '',
+      description: '',
+      columnId: 'todo',
+      boardId: _selectedBoardId,
     );
   }
 
   set selectedBoardId(String val) {
-      if (_selectedBoardId == val) return; 
-      _selectedBoardId = val;
-      loadTasks(val); 
+    if (_selectedBoardId == val) return;
+    _selectedBoardId = val;
+    loadTasks(val);
+    notifyListeners();
+  }
+
+  Future<void> loadTasks(String boardId) async {
+    if (boardId.isEmpty) return;
+
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      final url = Uri.https(_baseUrl, 'tasks/$boardId.json');
+      final response = await http.get(url);
+
+      if (response.body != 'null' && response.body.isNotEmpty) {
+        final Map<String, dynamic> tasksMap = json.decode(response.body);
+        final List<TaskModel> newTasks = [];
+        tasksMap.forEach((key, value) {
+          final auxTask = TaskModel.fromMap(value);
+          auxTask.id = key;
+          newTasks.add(auxTask);
+        });
+        tasks = newTasks;
+      } else {
+        tasks = [];
+      }
+    } catch (e) {
+      print('Error: $e');
+    } finally {
+      isLoading = false;
       notifyListeners();
     }
+  }
 
-
-  // --- MÉTODOS HTTP 
-  
-    Future<void> loadTasks(String boardId) async {
-      if (boardId.isEmpty) return;
-      
-      isLoading = true;
-      notifyListeners(); 
-
-      try {
-        final url = Uri.https(_baseUrl, 'tasks/$boardId.json');
-        final response = await http.get(url);
-
-        if (response.body != 'null' && response.body.isNotEmpty) {
-          final Map<String, dynamic> tasksMap = json.decode(response.body);
-          List<TaskModel> newTasks = [];
-          tasksMap.forEach((key, value) {
-            final auxTask = TaskModel.fromMap(value);
-            auxTask.id = key;
-            newTasks.add(auxTask);
-          });
-          tasks = newTasks;
-        } else {
-          tasks = [];
-        }
-      } catch (e) {
-        print("Error: $e");
-      } finally {
-        isLoading = false;
-        notifyListeners();
-      }
-    }
-
-  // GUARDAR O CREAR TAREA
   Future<void> saveOrCreateTask() async {
     if (_selectedBoardId.isEmpty) return;
     try {
@@ -85,65 +81,90 @@ class TaskService extends ChangeNotifier {
       if (_tempTask.id == null) {
         final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId.json');
         final response = await http.post(url, body: _tempTask.toJson());
-        
+
         if (response.statusCode == 200) {
           final Map<String, dynamic> data = json.decode(response.body);
-          taskId = data['name']; 
+          taskId = data['name'];
         }
       } else {
-        final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/${_tempTask.id}.json');
+        final url =
+            Uri.https(_baseUrl, 'tasks/$_selectedBoardId/${_tempTask.id}.json');
         await http.put(url, body: _tempTask.toJson());
-        
-        NotificationService.cancelarAvisoTarea(taskId.hashCode);
+
+        await NotificationService.cancelarAvisoTarea(taskId.hashCode);
       }
 
-      // --- PROGRAMAR NOTIFICACIÓN ---
-      if (taskId != null && _tempTask.dueDate != null) {
-        await NotificationService.programarAvisoTarea(
-          id: taskId.hashCode, 
-          titulo: _tempTask.title ?? "Nueva Tarea",
-          fechaEntrega: _tempTask.dueDate!, 
-        );
-      }
+      await NotificationService.programarAvisoTarea(
+        id: taskId.hashCode,
+        titulo: _tempTask.title,
+        fechaEntrega: _tempTask.dueDate,
+      );
 
       _resetTempTask();
-      loadTasks(_selectedBoardId);
+      await loadTasks(_selectedBoardId);
     } catch (e) {
-      print("Error al guardar y programar notificación: $e");
+      print('Error al guardar y programar notificacion: $e');
     }
   }
 
-  // MOVER TAREA 
   Future<void> moveTask(TaskModel task, String newColId) async {
     final oldColId = task.columnId;
     task.columnId = newColId;
-    notifyListeners(); 
+    notifyListeners();
     try {
       final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/${task.id}.json');
       final response = await http.put(url, body: task.toJson());
-      
+
       if (response.statusCode >= 400) throw Exception();
     } catch (e) {
-      print("Error al mover: $e");
+      print('Error al mover: $e');
       task.columnId = oldColId;
       notifyListeners();
     }
   }
 
-  // ELIMINAR TAREA
   Future<void> deleteTask(String taskId) async {
-  try {
-    await NotificationService.cancelarAvisoTarea(taskId.hashCode);
-    print("Notificación para la tarea $taskId cancelada con éxito");
+    try {
+      await NotificationService.cancelarAvisoTarea(taskId.hashCode);
+      final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/$taskId.json');
+      await http.delete(url);
 
-    final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId/$taskId.json');
-    await http.delete(url);
-    
-    tasks.removeWhere((t) => t.id == taskId);
-    notifyListeners();
-    
-  } catch (e) {
-    print("Error al borrar la tarea o la notificación: $e");
+      tasks.removeWhere((t) => t.id == taskId);
+      notifyListeners();
+    } catch (e) {
+      print('Error al borrar la tarea o la notificacion: $e');
+    }
   }
-}
+
+  Future<void> replaceBoardTasks(String boardId, List<TaskModel> newTasks) async {
+    if (boardId.isEmpty) return;
+
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final url = Uri.https(_baseUrl, 'tasks/$boardId.json');
+      final Map<String, dynamic> payload = {};
+
+      for (int i = 0; i < newTasks.length; i++) {
+        final task = newTasks[i];
+        task.boardId = boardId;
+        task.columnId = task.columnId.isEmpty ? 'todo' : task.columnId;
+        payload['classroom_$i'] = task.toMap();
+      }
+
+      await http.put(url, body: payload.isEmpty ? 'null' : json.encode(payload));
+
+      if (_selectedBoardId == boardId) {
+        await loadTasks(boardId);
+      } else {
+        isLoading = false;
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error reemplazando tareas del tablero: $e');
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

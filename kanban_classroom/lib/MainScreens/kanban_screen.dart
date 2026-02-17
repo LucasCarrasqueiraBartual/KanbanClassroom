@@ -8,19 +8,41 @@ import 'package:kanban_classroom/models/models.dart';
 import 'package:kanban_classroom/widgets/drawer.dart';
 import 'package:kanban_classroom/BoardWidgetScreen/Board.dart';
 
-class KanbanScreen extends StatelessWidget {
+class KanbanScreen extends StatefulWidget {
   const KanbanScreen({super.key});
+
+  @override
+  State<KanbanScreen> createState() => _KanbanScreenState();
+}
+
+class _KanbanScreenState extends State<KanbanScreen> {
+  bool _classroomInitRequested = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_classroomInitRequested) return;
+
+    _classroomInitRequested = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final classroomService =
+          Provider.of<ClassroomService>(context, listen: false);
+      final userService = Provider.of<UserService>(context, listen: false);
+      final boardService = Provider.of<BoardService>(context, listen: false);
+      final taskService = Provider.of<TaskService>(context, listen: false);
+      classroomService.syncClassroomToKanban(
+        userService: userService,
+        boardService: boardService,
+        taskService: taskService,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final taskService = Provider.of<TaskService>(context);
     final userService = Provider.of<UserService>(context);
-
-    final classroomService = Provider.of<ClassroomService>(context, listen: false);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      classroomService.signInAndPrintCourses();
-    });
 
 
     if (userService.tempUser == null) {
