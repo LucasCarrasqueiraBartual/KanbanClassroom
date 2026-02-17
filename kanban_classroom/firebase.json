@@ -1,1 +1,35 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"kanban-proyect","appId":"1:613447001121:android:cc936a778b5ea02ba96f60","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"kanban-proyect","configurations":{"android":"1:613447001121:android:cc936a778b5ea02ba96f60"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "kanban-proyect",
+          "appId": "1:613447001121:android:cc936a778b5ea02ba96f60",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "kanban-proyect",
+          "configurations": {
+            "android": "1:613447001121:android:cc936a778b5ea02ba96f60"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

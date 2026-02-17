@@ -10,6 +10,7 @@ class ClassroomService {
   static const String _boardPrefix = 'Classroom - ';
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: "613447001121-rqeqo29uitjmhgvdqcb98m4lrpjcq7ub.apps.googleusercontent.com",
     scopes: [
       ClassroomApi.classroomCoursesReadonlyScope,
       ClassroomApi.classroomCourseworkMeReadonlyScope,

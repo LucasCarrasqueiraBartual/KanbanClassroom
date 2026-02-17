@@ -9,7 +9,9 @@ class UserService extends ChangeNotifier {
     final String _baseUrl = "kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app"; 
 
     final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;
-    final GoogleSignIn _googleSignIn = GoogleSignIn(); 
+    final GoogleSignIn _googleSignIn = GoogleSignIn(
+      clientId: "613447001121-rqeqo29uitjmhgvdqcb98m4lrpjcq7ub.apps.googleusercontent.com"
+    ); 
 
     List<User> users = [];
     User? tempUser; 
