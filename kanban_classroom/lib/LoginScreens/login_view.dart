@@ -36,7 +36,10 @@ class _LoginViewState extends State<LoginView> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
 
-              const Icon(Icons.house, size: 80, color: Colors.indigo),
+              Image.asset(
+                'assets/images/logo.png',
+                height: 80,
+              ),              
               const SizedBox(height: 20),
               const Text("Bienvenido", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
               const SizedBox(height: 40),
