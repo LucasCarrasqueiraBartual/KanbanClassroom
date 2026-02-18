@@ -25,7 +25,7 @@ class NotificationService {
       await _notificationsPlugin.initialize(
       settings: initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse details) {
-        print("Notificación tocada: ${details.payload}");
+        print("Notificacion tocada: ${details.payload}");
       },
     );    
     await _notificationsPlugin
@@ -45,7 +45,7 @@ class NotificationService {
 
     await _notificationsPlugin.zonedSchedule(
       id: id, 
-      title: '¡Atención!', 
+      title: '¡Atencion!', 
       body: 'La tarea "$titulo" vence pronto.', 
       scheduledDate: avisoDate,
       notificationDetails: const NotificationDetails(
@@ -61,7 +61,7 @@ class NotificationService {
   }
   static Future<void> cancelarAvisoTarea(int id) async {
     await _notificationsPlugin.cancel(id: id);
-    print("Notificación $id cancelada");
+    print("Notificacion $id cancelada");
   }
 
   static Future<void> cancelarTodosLosAvisos() async {

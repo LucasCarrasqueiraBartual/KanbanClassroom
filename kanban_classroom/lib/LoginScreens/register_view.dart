@@ -34,7 +34,7 @@ class _RegisterViewState extends State<RegisterView> {
         child: Column(
           children: [
 
-            const Text("Regístrate", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+            const Text("Registrate", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
             const SizedBox(height: 40),
 
             TextField(

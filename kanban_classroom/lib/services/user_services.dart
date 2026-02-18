@@ -21,7 +21,7 @@ class UserService extends ChangeNotifier {
       checkCurrentUser();
     }
 
-    // --- MÉTODOS DE AUTENTICACIÓN
+    // --- METODOS DE AUTENTICACION
 
       Future<void> checkCurrentUser() async {
         final currentUser = _auth.currentUser;
@@ -61,7 +61,7 @@ class UserService extends ChangeNotifier {
             } on auth.FirebaseAuthException catch (e) {
               return e.message; 
           } catch (e) {
-            return "Ocurrió un error inesperado al registrar.";
+            return "Ocurrio un error inesperado al registrar.";
         } finally {
         isLoading = false;
         notifyListeners();
@@ -177,13 +177,13 @@ class UserService extends ChangeNotifier {
         tempUser = null;
         notifyListeners();
       } catch (e) {
-        print("Error al cerrar sesión: $e");
+        print("Error al cerrar sesion: $e");
       }
     }
 
     Future<String?> deleteUserAccountGoogle() async {
       final user = _auth.currentUser;
-      if (user == null) return "No hay sesión activa";
+      if (user == null) return "No hay sesion activa";
       
       final uid = user.uid; 
 
@@ -215,11 +215,11 @@ class UserService extends ChangeNotifier {
       }
     }
 
-// -- METODOS DE ACTUALIZACIÓN DE UN USUARIO
+// -- METODOS DE ACTUALIZACION DE UN USUARIO
 
   Future<String?> updateUserName(String newName) async {
     try {
-      if (tempUser == null) return "No hay sesión activa";
+      if (tempUser == null) return "No hay sesion activa";
       
       isLoading = true;
       notifyListeners();
@@ -245,7 +245,7 @@ class UserService extends ChangeNotifier {
   Future<String?> deleteUserAccount() async {
     String? error;
     final user = _auth.currentUser;
-    if (user == null) return "No hay sesión activa";
+    if (user == null) return "No hay sesion activa";
     
     final uid = user.uid; 
 

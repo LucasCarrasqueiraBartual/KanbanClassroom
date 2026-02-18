@@ -91,7 +91,7 @@ class _LoginViewState extends State<LoginView> {
                         }
                       }
                     },
-                    child: const Text("Iniciar Sesión"),
+                    child: const Text("Iniciar Sesion"),
                   ),
 
               const SizedBox(height: 20),
@@ -152,7 +152,7 @@ class _LoginViewState extends State<LoginView> {
                   const Text("¿No tienes cuenta? "),
                   TextButton(
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterView())),
-                    child: const Text("¡Regístrate ya!"),
+                    child: const Text("¡Registrate ya!"),
                   ),
                 ],
               ),

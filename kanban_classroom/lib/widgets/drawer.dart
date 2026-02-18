@@ -103,7 +103,7 @@ class KanbanDrawer extends StatelessWidget {
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.redAccent),
-            title: const Text("Cerrar Sesión"),
+            title: const Text("Cerrar Sesion"),
             onTap: () async {
               await userService.logout();
               if (context.mounted) {
@@ -135,7 +135,7 @@ class KanbanDrawer extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("¿Eliminar tablero?"),
-        content: Text("¿Estás seguro de eliminar '$boardName'? Esta acción no se puede deshacer."),
+        content: Text("¿Estas seguro de eliminar '$boardName'? Esta accion no se puede deshacer."),
         actions: [
 
           TextButton(
@@ -147,7 +147,7 @@ class KanbanDrawer extends StatelessWidget {
             onPressed: () async {
               Navigator.pop(context); 
               await boardService.deleteBoard(boardId, userService.tempUser!.id!, userService);
-              // Si el tablero borrado es el que está abierto, limpiamos la selección
+              // Si el tablero borrado es el que esta abierto, limpiamos la seleccion
               if (taskService.selectedBoardId == boardId) {
                 taskService.selectedBoardId = '';
               }

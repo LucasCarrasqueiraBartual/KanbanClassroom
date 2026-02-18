@@ -18,7 +18,7 @@ class UserProfileView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Configuración de Perfil"),
+        title: const Text("Configuracion de Perfil"),
         backgroundColor: const Color.fromARGB(255, 67, 103, 145),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -53,7 +53,7 @@ class UserProfileView extends StatelessWidget {
                     initialValue: user.email,
                     enabled: false,
                     decoration: const InputDecoration(
-                      labelText: "Correo Electrónico",
+                      labelText: "Correo Electronico",
                       prefixIcon: Icon(Icons.email_outlined),
                       border: OutlineInputBorder(),
                       filled: true,
@@ -115,9 +115,9 @@ class UserProfileView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog( 
-        title: const Text("¿Eliminar cuenta definitivamente?"),
+        title: const Text("Eliminar cuenta definitivamente?"),
         content: const Text(
-            "Se borrarán todos tus tableros y datos de forma permanente. Por seguridad, si ha pasado mucho tiempo desde tu último acceso, el sistema te pedirá re-autenticarte."),
+            "Se borraran todos tus tableros y datos de forma permanente. Por seguridad, si ha pasado mucho tiempo desde tu ultimo acceso, el sistema te pedira re-autenticarte."),
         actions: [
 
           TextButton(

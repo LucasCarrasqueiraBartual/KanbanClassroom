@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:kanban_classroom/MainScreens/user_profile_screen.dart';
 import 'package:kanban_classroom/services/classroom_services.dart';
@@ -17,6 +17,52 @@ class KanbanScreen extends StatefulWidget {
 
 class _KanbanScreenState extends State<KanbanScreen> {
   bool _classroomInitRequested = false;
+
+  Future<void> _showDescriptionEditor(
+    BuildContext context,
+    TaskModel temp,
+    void Function(void Function()) setDialogState,
+  ) async {
+    var draftDescription = temp.description;
+
+    final updatedDescription = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Editar descripcion"),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 320,
+          child: TextFormField(
+            initialValue: draftDescription,
+            keyboardType: TextInputType.multiline,
+            minLines: null,
+            maxLines: null,
+            expands: true,
+            onChanged: (value) => draftDescription = value,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: "Escribe aqui la descripcion...",
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(draftDescription),
+            child: const Text("Aplicar"),
+          ),
+        ],
+      ),
+    );
+
+    if (updatedDescription != null) {
+      temp.description = updatedDescription;
+      setDialogState(() {});
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -151,11 +197,11 @@ class _KanbanScreenState extends State<KanbanScreen> {
             Icon(Icons. dashboard_outlined, size: 100, color: Colors.white.withOpacity(0.5)),
             const SizedBox(height: 20),
             const Text(
-              "No hay ningún tablero seleccionado",
+              "No hay ningun tablero seleccionado",
               style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w300),
             ),
             const Text(
-              "Abre el menú y crea uno nuevo",
+              "Abre el menu y crea uno nuevo",
               style: TextStyle(color: Colors.white70, fontSize: 16),
             ),
           ],
@@ -211,7 +257,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 
                 if (email == userService.tempUser?.email) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Ya eres el dueño de este tablero"))
+                    const SnackBar(content: Text("Ya eres el dueÃ±o de este tablero"))
                   );
                   return;
                 }
@@ -227,7 +273,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(error ?? "¡Tablero compartido con éxito!"),
+                        content: Text(error ?? "Â¡Tablero compartido con Ã©xito!"),
                         backgroundColor: error == null ? Colors.green : Colors.red,
                       ),
                     );
@@ -276,13 +322,17 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 TextField(
                     controller: TextEditingController(text: temp.title)..selection = TextSelection.collapsed(offset: temp.title.length),
                     onChanged: (val) => temp.title = val,
-                    decoration: const InputDecoration(labelText: "Título"),
+                    decoration: const InputDecoration(labelText: "Titulo"),
                 ),
 
                 TextField(
+                    readOnly: true,
                     controller: TextEditingController(text: temp.description),
-                    onChanged: (val) => temp.description = val,
-                    decoration: const InputDecoration(labelText: "Descripción"),
+                    onTap: () => _showDescriptionEditor(context, temp, setState),
+                    decoration: const InputDecoration(
+                      labelText: "Descripcion (clic para editar)",
+                      suffixIcon: Icon(Icons.open_in_full),
+                    ),
                 ),
 
                 TextField(
@@ -328,4 +378,5 @@ class _KanbanScreenState extends State<KanbanScreen> {
     );
   }
 }
+
 

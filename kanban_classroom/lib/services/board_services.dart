@@ -10,7 +10,7 @@ class BoardService extends ChangeNotifier {
   List<BoardModel> boards = [];
   bool isLoading = false;
 
-  // --- MÉTODOS CRUD DEL TABLERO ---
+  // --- METODOS CRUD DEL TABLERO ---
   Future<String?> createBoard(String boardName, String userId, UserService userService) async {
     try {
       isLoading = true;

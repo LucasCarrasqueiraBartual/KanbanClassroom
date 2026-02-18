@@ -40,7 +40,7 @@ class TaskModel {
 
   String toJson() => json.encode(toMap());
 
-  // Método  para copiar una tarea no modificar la original 
+  // Metodo  para copiar una tarea no modificar la original 
   TaskModel copy() => TaskModel(
     id: id,
     title: title,
