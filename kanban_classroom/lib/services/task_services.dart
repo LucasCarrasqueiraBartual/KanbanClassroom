@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:kanban_classroom/models/models.dart';
 import 'package:kanban_classroom/services/notification_services.dart';
 
-class TaskService extends ChangeNotifier {
+class TaskService extends ChangeNotifier {  //Provider para la gestión de tareas 
   final String _baseUrl =
       'kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app';
 
@@ -25,7 +25,7 @@ class TaskService extends ChangeNotifier {
   TaskService() {
     _resetTempTask();
   }
-
+ // metodo para reiniciarl el temp taskc 
   void _resetTempTask() {
     _tempTask = TaskModel(
       title: '',
@@ -35,6 +35,7 @@ class TaskService extends ChangeNotifier {
     );
   }
 
+  // Al cambiar de tablero, cargamos automáticamente sus tareas.
   set selectedBoardId(String val) {
     if (_selectedBoardId == val) return;
     _selectedBoardId = val;
@@ -42,7 +43,8 @@ class TaskService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadTasks(String boardId) async {
+  // Obatener tareas de un tablero especifico
+  Future<void> loadTasks(String boardId) async {        
     if (boardId.isEmpty) return;
 
     isLoading = true;
@@ -72,6 +74,7 @@ class TaskService extends ChangeNotifier {
     }
   }
 
+
   Future<void> saveOrCreateTask() async {
     if (_selectedBoardId.isEmpty) return;
     try {
@@ -79,6 +82,7 @@ class TaskService extends ChangeNotifier {
       String? taskId = _tempTask.id;
 
       if (_tempTask.id == null) {
+        // creación:  POST .
         final url = Uri.https(_baseUrl, 'tasks/$_selectedBoardId.json');
         final response = await http.post(url, body: _tempTask.toJson());
 
@@ -87,6 +91,7 @@ class TaskService extends ChangeNotifier {
           taskId = data['name'];
         }
       } else {
+        // edición:  PUT .
         final url =
             Uri.https(_baseUrl, 'tasks/$_selectedBoardId/${_tempTask.id}.json');
         await http.put(url, body: _tempTask.toJson());
@@ -107,6 +112,7 @@ class TaskService extends ChangeNotifier {
     }
   }
 
+  //  permite el Drag & Drop visual la move tareas.
   Future<void> moveTask(TaskModel task, String newColId) async {
     final oldColId = task.columnId;
     task.columnId = newColId;

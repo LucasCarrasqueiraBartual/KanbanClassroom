@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-class User {
+class User {           // Modelo usuario
 
   String? id;
   String nombre;

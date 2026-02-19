@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart' as auth; 
 import 'package:kanban_classroom/models/user_model.dart';
 
-class UserService extends ChangeNotifier {
+class UserService extends ChangeNotifier {  // Provider para la gestión de los usuarios
     final String _baseUrl = "kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app"; 
 
     final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;

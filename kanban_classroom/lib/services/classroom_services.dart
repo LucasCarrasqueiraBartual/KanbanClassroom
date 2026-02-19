@@ -6,9 +6,11 @@ import 'package:kanban_classroom/services/board_services.dart';
 import 'package:kanban_classroom/services/task_services.dart';
 import 'package:kanban_classroom/services/user_services.dart';
 
+// Transforma el contenido educativo en un flujo de trabajo ágil (Kanban).
 class ClassroomService {
   static const String _boardPrefix = 'Classroom - ';
 
+  // Configuración de Google Sign-In con los "Scopes" (permisos) necesarios
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: "613447001121-rqeqo29uitjmhgvdqcb98m4lrpjcq7ub.apps.googleusercontent.com",
     scopes: [
@@ -19,7 +21,7 @@ class ClassroomService {
   );
 
   ClassroomApi? _classroomApi;
-
+  // es el método principal que para la sincronización.
   Future<void> syncClassroomToKanban({
     required UserService userService,
     required BoardService boardService,
@@ -87,7 +89,7 @@ class ClassroomService {
       print('Error al sincronizar Classroom -> Kanban: $e');
     }
   }
-
+  // Recorre la API de Google para listar solo cursos .
   Future<List<Course>> _readActiveCourses() async {
     if (_classroomApi == null) return [];
 
@@ -171,7 +173,7 @@ class ClassroomService {
     final courseName = (course.name ?? 'Sin nombre').trim();
     return '$_boardPrefix$courseName';
   }
-
+  // Esto permite que las tareas aparezcan directamente en la columna .
   Future<bool> _isDelivered(String courseId, String? courseWorkId) async {
     if (_classroomApi == null || courseWorkId == null || courseWorkId.isEmpty) {
       return false;
@@ -195,7 +197,7 @@ class ClassroomService {
       return false;
     }
   }
-
+  // Mapea un obejeto Curso de Google a nuestro modelo kanban
   TaskModel _toTaskModel(Course course, CourseWork work, {required bool delivered}) {
     final title = (work.title ?? '').trim().isEmpty
         ? 'Tarea sin titulo'
@@ -218,8 +220,8 @@ class ClassroomService {
       columnId: delivered ? 'done' : 'todo',
     );
   }
-
-  DateTime _resolveDueDate(CourseWork work) {
+  // Metod para el formato de fecha de Google
+  DateTime _resolveDueDate(CourseWork work) {  
     final dueDate = work.dueDate;
     if (dueDate == null) return DateTime.now();
 

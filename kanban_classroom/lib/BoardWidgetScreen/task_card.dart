@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kanban_classroom/models/models.dart';
 import 'package:kanban_classroom/services/services.dart';
 
-class TaskCard extends StatelessWidget {
+class TaskCard extends StatelessWidget {   //Tarjetas visuales para cada tarea
   final TaskModel task;
   final TaskService service;
   final VoidCallback onTap;
@@ -16,7 +16,7 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LongPressDraggable<TaskModel>(  
+    return LongPressDraggable<TaskModel>(   //permite que la tarea se arrastre solo tras una pulsación larga
       delay: const Duration(milliseconds: 140),           
       data: task, 
         feedback: Material(
@@ -41,7 +41,7 @@ class TaskCard extends StatelessWidget {
     );
   }
 
-  Widget _cardItem() {
+  Widget _cardItem() {  //Interfaz visual de la tarjeta. Encapsula el diseño para reutilizarlo en los
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Padding(

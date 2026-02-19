@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/user_services.dart';
 import '../MainScreens/kanban_screen.dart';
 
-class RegisterView extends StatefulWidget {
+class RegisterView extends StatefulWidget { // Pantalla para realizar rgistro 
   const RegisterView({super.key});
 
   @override
@@ -37,26 +37,26 @@ class _RegisterViewState extends State<RegisterView> {
             const Text("Registrate", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
             const SizedBox(height: 40),
 
-            TextField(
+            TextField(                      // Para recojer el nombre del usuario 
               controller: nameCtrl,
               decoration: const InputDecoration(labelText: 'Nombre Completo', border: OutlineInputBorder()),
             ),
 
             const SizedBox(height: 16),
-            TextField(
+            TextField(                       // Para recojer el nombre del usuario 
               controller: emailCtrl,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
             ),
 
             const SizedBox(height: 16),
-            TextField(
+            TextField(                       // Para recojer la contraseña del usuario 
               controller: passCtrl,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'Contraseña', border: OutlineInputBorder()),
             ),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 24),     //procesamiento del registro en firebase y validación
             userService.isLoading 
               ? const CircularProgressIndicator()
               : ElevatedButton(
@@ -68,7 +68,7 @@ class _RegisterViewState extends State<RegisterView> {
                       );
                       return;
                     }
-
+                          // registro en el backend a través del servicio.
                     final error = await userService.registerUser(
                       email: emailCtrl.text.trim(),
                       password: passCtrl.text.trim(),
@@ -76,7 +76,7 @@ class _RegisterViewState extends State<RegisterView> {
                     );
 
                     if (error == null) {
-                      if (mounted) {
+                      if (mounted) {   //Volvemos al tablero principal si se registro de forma exitosa
                         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const KanbanScreen()));
                       }
                     } else {

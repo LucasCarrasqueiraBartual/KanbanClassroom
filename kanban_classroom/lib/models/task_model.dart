@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-class TaskModel {
+class TaskModel {         // Modelo para las tareas 
   String? id;
   String title;
   String columnId;
@@ -40,7 +40,7 @@ class TaskModel {
 
   String toJson() => json.encode(toMap());
 
-  // Metodo  para copiar una tarea no modificar la original 
+       // Metodo  para copiar una tarea no modificar la original 
   TaskModel copy() => TaskModel(
     id: id,
     title: title,

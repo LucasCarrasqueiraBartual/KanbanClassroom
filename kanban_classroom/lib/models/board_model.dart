@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-class BoardModel {
+class BoardModel {            // Modelo de tableros
   String? id;
   String nombre;
   String creadorId;

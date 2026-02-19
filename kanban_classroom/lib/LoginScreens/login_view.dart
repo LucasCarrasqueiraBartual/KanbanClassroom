@@ -4,7 +4,7 @@ import 'package:kanban_classroom/services/services.dart';
 import '../MainScreens/kanban_screen.dart';
 import 'register_view.dart';
 
-class LoginView extends StatefulWidget {
+class LoginView extends StatefulWidget {     //  Pantalla principal del login al iniciar
   const LoginView({super.key});
 
   @override
@@ -44,19 +44,19 @@ class _LoginViewState extends State<LoginView> {
               const Text("Bienvenido", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
               const SizedBox(height: 40),
 
-              TextField(
+              TextField(                              // Para recojer el email
                 controller: emailCtrl,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
               ),const SizedBox(height: 16),
 
-              TextField(
+              TextField(                              // Para recojer la contraseña
                 controller: passCtrl,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'Contraseña', border: OutlineInputBorder()),
               ),const SizedBox(height: 24),
 
-              userService.isLoading 
+              userService.isLoading             //Procesamiento del login
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
                     style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
@@ -106,7 +106,7 @@ class _LoginViewState extends State<LoginView> {
                   Expanded(child: Divider()),
                 ],
               ),const SizedBox(height: 16),
-
+                                                        // autenticación con Google.
               userService.isLoading 
                 ? const SizedBox.shrink()
                 : OutlinedButton(

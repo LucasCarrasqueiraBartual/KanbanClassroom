@@ -3,6 +3,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:flutter_timezone/flutter_timezone.dart';
 
+// gestiona las alertas locales en el dispositivo.
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -33,6 +34,7 @@ class NotificationService {
         ?.requestNotificationsPermission();
   }
 
+  // Crea un recordatorio para el futuro.
   static Future<void> programarAvisoTarea({
     required int id,
     required String titulo,

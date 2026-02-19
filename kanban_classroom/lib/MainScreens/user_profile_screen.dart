@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:kanban_classroom/services/services.dart';
 import 'package:kanban_classroom/LoginScreens/login_view.dart'; 
 
-class UserProfileView extends StatelessWidget {
+class UserProfileView extends StatelessWidget {     // Pagina de gestión de usuario, nombre y borrar cuenta
   const UserProfileView({super.key});
 
   @override
@@ -30,7 +30,7 @@ class UserProfileView extends StatelessWidget {
               child: Column(
                 children: [
 
-                  CircleAvatar(
+                  CircleAvatar(                             // Fotografia para la foto de perfil
                     radius: 50,
                     backgroundColor: const Color.fromARGB(255, 67, 103, 145),
                     backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
@@ -39,7 +39,7 @@ class UserProfileView extends StatelessWidget {
                       : null,
                   ),const SizedBox(height: 30),
 
-                  TextFormField(
+                  TextFormField(                          // Campo para el nombre
                     initialValue: user.nombre,
                     decoration: const InputDecoration(
                       labelText: "Nombre Completo",
@@ -49,7 +49,7 @@ class UserProfileView extends StatelessWidget {
                     onChanged: (value) => nombreTemporal = value,
                   ),const SizedBox(height: 20),
 
-                  TextFormField(
+                  TextFormField(                        // Campo para el email de usuario
                     initialValue: user.email,
                     enabled: false,
                     decoration: const InputDecoration(
@@ -60,10 +60,10 @@ class UserProfileView extends StatelessWidget {
                     ),
                   ),const SizedBox(height: 40),
 
-                  SizedBox(
+                  SizedBox(                               
                     width: double.infinity,
                     height: 50,
-                    child: ElevatedButton(
+                    child: ElevatedButton(          // para guardar camnios
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 67, 103, 145),
                         shape: RoundedRectangleBorder(
@@ -95,7 +95,7 @@ class UserProfileView extends StatelessWidget {
                   const Divider(),
                   const SizedBox(height: 20),
 
-                  TextButton.icon(
+                  TextButton.icon(              // Eliminación de cuenta
                     onPressed: userService.isLoading 
                       ? null 
                       : () => _confirmarEliminacion(context, userService),

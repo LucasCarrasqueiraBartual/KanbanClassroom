@@ -4,13 +4,13 @@ import 'package:http/http.dart' as http;
 import 'package:kanban_classroom/models/models.dart';
 import 'package:kanban_classroom/services/services.dart';
 
-class BoardService extends ChangeNotifier {
+class BoardService extends ChangeNotifier {      //Provider  del tablero
 
   final String _baseUrl = "kanban-proyect-default-rtdb.europe-west1.firebasedatabase.app"; 
   List<BoardModel> boards = [];
   bool isLoading = false;
 
-  // --- METODOS CRUD DEL TABLERO ---
+  // --- METODOS CRUD DEL TABLERO 
   Future<String?> createBoard(String boardName, String userId, UserService userService) async {
     try {
       isLoading = true;
@@ -22,16 +22,16 @@ class BoardService extends ChangeNotifier {
         fechaCreacion: DateTime.now(),
       );
 
-      // 1. Guardar tablero /boards
+      // Guardar tablero /boards
       final url = Uri.https(_baseUrl, 'boards.json');
       final resp = await http.post(url, body: newBoard.toJson());
       final decodedData = json.decode(resp.body);
       final String boardId = decodedData['name'];
 
-      // 2. Vincular el ID en /users/$userId/tableros
       final userUrl = Uri.https(_baseUrl, 'users/$userId/tableros/$boardId.json');
       await http.put(userUrl, body: json.encode(boardName));
-
+      
+        // Actualizamos el modelo del usuario se actualice al instante.
       if (userService.tempUser != null) {
         userService.tempUser!.tableros[boardId] = boardName;
       }
@@ -50,7 +50,7 @@ class BoardService extends ChangeNotifier {
 
   Future<void> deleteBoard(String boardId, String userId, UserService userService) async {
     try {                                      
-      isLoading = true;                // Hay que eliminar todo antes de elimnar boar
+      isLoading = true;                // Hay que eliminar todo antes de elimnar un board
       notifyListeners();
 
       // Eliminar el tablero de /boards
